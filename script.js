@@ -1,8 +1,4 @@
-let shoppingList = JSON.parse(localStorage.getItem("shoppingList")) || [
-    { name: "J1s", price: 23600, purchased: false },
-    { name: "Ant3s", price: 40000, purchased: false },
-    { name: "VaporMax", price: 25000, purchased: false }
-];
+let shoppingList = JSON.parse(localStorage.getItem("shoppingList")) || [];
 
 const listContainer = document.getElementById("shoppingList");
 const itemInput = document.getElementById("itemInput");
@@ -10,9 +6,8 @@ const priceInput = document.getElementById("priceInput");
 const addButton = document.getElementById("addButton");
 const totalCost = document.getElementById("totalCost");
 const clearButton = document.getElementById("clearButton");
-const markPurchasedButton = document.getElementById("markPurchasedButton");
 
-``
+
 function saveList() {
     localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
 }
@@ -37,14 +32,12 @@ function displayList() {
         editButton.textContent = "Edit";
         deleteButton.textContent = "Delete";
 
-        
         checkbox.addEventListener("change", () => {
             item.purchased = checkbox.checked;
             saveList();
             displayList();
         });
 
-    
         editButton.addEventListener("click", () => {
             const name = prompt("Enter item name:", item.name);
             if (name === null || !name.trim()) return;
@@ -63,7 +56,6 @@ function displayList() {
             displayList();
         });
 
-    
         deleteButton.addEventListener("click", () => {
             if (confirm(`Delete ${item.name}?`)) {
                 shoppingList.splice(index, 1);
@@ -76,13 +68,13 @@ function displayList() {
         listContainer.appendChild(li);
     });
 
-
     const total = shoppingList.reduce(
         (sum, item) => sum + (item.purchased ? item.price : 0), 0
     );
 
     totalCost.textContent = total.toFixed(2);
 }
+
 
 addButton.addEventListener("click", () => {
     const name = itemInput.value.trim();
@@ -104,24 +96,13 @@ addButton.addEventListener("click", () => {
 });
 
 
-if (markPurchasedButton) {
-    markPurchasedButton.addEventListener("click", () => {
-        shoppingList.forEach(item => item.purchased = true);
+clearButton.addEventListener("click", () => {
+    if (confirm("Clear the entire shopping list?")) {
+        shoppingList = [];
         saveList();
         displayList();
-    });
-}
-
-
-if (clearButton) {
-    clearButton.addEventListener("click", () => {
-        if (confirm("Clear the entire shopping list?")) {
-            shoppingList = [];
-            saveList();
-            displayList();
-        }
-    });
-}
+    }
+});
 
 
 displayList();
