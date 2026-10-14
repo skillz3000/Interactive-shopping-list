@@ -12,12 +12,12 @@ const totalCost = document.getElementById("totalCost");
 const clearButton = document.getElementById("clearButton");
 const markPurchasedButton = document.getElementById("markPurchasedButton");
 
-// Save list
+``
 function saveList() {
     localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
 }
 
-// Display list
+
 function displayList() {
     listContainer.innerHTML = "";
 
@@ -37,12 +37,14 @@ function displayList() {
         editButton.textContent = "Edit";
         deleteButton.textContent = "Delete";
 
+        
         checkbox.addEventListener("change", () => {
             item.purchased = checkbox.checked;
             saveList();
             displayList();
         });
 
+    
         editButton.addEventListener("click", () => {
             const name = prompt("Enter item name:", item.name);
             if (name === null || !name.trim()) return;
@@ -61,17 +63,20 @@ function displayList() {
             displayList();
         });
 
+    
         deleteButton.addEventListener("click", () => {
-            shoppingList.splice(index, 1);
-            saveList();
-            displayList();
+            if (confirm(`Delete ${item.name}?`)) {
+                shoppingList.splice(index, 1);
+                saveList();
+                displayList();
+            }
         });
 
         li.append(checkbox, text, editButton, deleteButton);
         listContainer.appendChild(li);
     });
 
-    // Calculate purchased items total
+
     const total = shoppingList.reduce(
         (sum, item) => sum + (item.purchased ? item.price : 0), 0
     );
@@ -79,7 +84,6 @@ function displayList() {
     totalCost.textContent = total.toFixed(2);
 }
 
-// Add item
 addButton.addEventListener("click", () => {
     const name = itemInput.value.trim();
     const price = Number(priceInput.value);
@@ -100,7 +104,7 @@ addButton.addEventListener("click", () => {
 });
 
 
-    if (markPurchasedButton) {
+if (markPurchasedButton) {
     markPurchasedButton.addEventListener("click", () => {
         shoppingList.forEach(item => item.purchased = true);
         saveList();
@@ -108,7 +112,7 @@ addButton.addEventListener("click", () => {
     });
 }
 
-// Clear list
+
 if (clearButton) {
     clearButton.addEventListener("click", () => {
         if (confirm("Clear the entire shopping list?")) {
@@ -119,5 +123,5 @@ if (clearButton) {
     });
 }
 
-// Start the application
+
 displayList();
