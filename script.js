@@ -1,232 +1,123 @@
-let shoppingList = [
+let shoppingList = JSON.parse(localStorage.getItem("shoppingList")) || [
     { name: "J1s", price: 23600, purchased: false },
     { name: "Ant3s", price: 40000, purchased: false },
     { name: "VaporMax", price: 25000, purchased: false }
 ];
-
-try {
-    const savedList = localStorage.getItem("shoppingList");
-
-    if (savedList !== null) {
-        const parsedList = JSON.parse(savedList);
-
-        if (
-            Array.isArray(parsedList) &&
-            parsedList.every(item =>
-                item &&
-                typeof item.name === "string" &&
-                item.name.trim() !== "" &&
-                typeof item.price === "number" &&
-                Number.isFinite(item.price) &&
-                item.price >= 0 &&
-                typeof item.purchased === "boolean"
-            )
-        ) {
-            shoppingList = parsedList;
-        }
-    }
-} catch (error) {
-    console.error("Error loading shopping list:", error);
-}
 
 const listContainer = document.getElementById("shoppingList");
 const itemInput = document.getElementById("itemInput");
 const priceInput = document.getElementById("priceInput");
 const addButton = document.getElementById("addButton");
 const totalCost = document.getElementById("totalCost");
+const clearButton = document.getElementById("clearButton");
+const markPurchasedButton = document.getElementById("markPurchasedButton");
 
-function saveShoppingList() {
-    try {
-        localStorage.setItem(
-            "shoppingList",
-            JSON.stringify(shoppingList)
-        );
-    } catch (error) {
-        console.error("Error saving shopping list:", error);
-        alert("Unable to save the shopping list.");
-    }
+// Save list
+function saveList() {
+    localStorage.setItem("shoppingList", JSON.stringify(shoppingList));
 }
 
-function displayShoppingList() {
+// Display list
+function displayList() {
     listContainer.innerHTML = "";
 
-    shoppingList.forEach(function(item, index) {
+    shoppingList.forEach((item, index) => {
         const li = document.createElement("li");
-        const label = document.createElement("label");
         const checkbox = document.createElement("input");
-        const itemText = document.createElement("span");
+        const text = document.createElement("span");
+        const editButton = document.createElement("button");
+        const deleteButton = document.createElement("button");
 
         checkbox.type = "checkbox";
         checkbox.checked = item.purchased;
 
-        checkbox.addEventListener("change", function() {
-            item.purchased = checkbox.checked;
+        text.textContent = `${item.name} - KSh ${item.price.toFixed(2)}`;
+        text.style.textDecoration = item.purchased ? "line-through" : "none";
 
-            saveShoppingList();
-            displayShoppingList();
-        });
-
-        itemText.textContent =
-            " " + item.name + " - KSh " +
-            item.price.toFixed(2);
-
-        itemText.style.textDecoration = item.purchased
-            ? "line-through"
-            : "none";
-
-        label.appendChild(checkbox);
-        label.appendChild(itemText);
-
-        li.appendChild(label);
-
-        const editButton = document.createElement("button");
         editButton.textContent = "Edit";
-        editButton.type = "button";
-
-        editButton.addEventListener("click", function() {
-            const newName = prompt(
-                "Enter item name:",
-                item.name
-            );
-
-            if (newName === null) {
-                return;
-            }
-
-            if (newName.trim() === "") {
-                alert("Item name cannot be empty!");
-                return;
-            }
-
-            const newPrice = prompt(
-                "Enter item price:",
-                item.price
-            );
-
-            if (newPrice === null) {
-                return;
-            }
-
-            const price = Number(newPrice);
-
-            if (
-                newPrice.trim() === "" ||
-                !Number.isFinite(price) ||
-                price < 0
-            ) {
-                alert("Please enter a valid price!");
-                return;
-            }
-
-            item.name = newName.trim();
-            item.price = price;
-
-            saveShoppingList();
-            displayShoppingList();
-        });
-
-        const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
-        deleteButton.type = "button";
 
-        deleteButton.addEventListener("click", function() {
-            const confirmed = confirm(
-                "Delete " + item.name + "?"
-            );
-
-            if (confirmed) {
-                shoppingList.splice(index, 1);
-
-                saveShoppingList();
-                displayShoppingList();
-            }
+        checkbox.addEventListener("change", () => {
+            item.purchased = checkbox.checked;
+            saveList();
+            displayList();
         });
 
-        li.appendChild(editButton);
-        li.appendChild(deleteButton);
+        editButton.addEventListener("click", () => {
+            const name = prompt("Enter item name:", item.name);
+            if (name === null || !name.trim()) return;
 
+            const price = prompt("Enter item price:", item.price);
+            if (price === null || price.trim() === "" ||
+                !Number.isFinite(Number(price)) || Number(price) < 0) {
+                alert("Enter a valid price!");
+                return;
+            }
+
+            item.name = name.trim();
+            item.price = Number(price);
+
+            saveList();
+            displayList();
+        });
+
+        deleteButton.addEventListener("click", () => {
+            shoppingList.splice(index, 1);
+            saveList();
+            displayList();
+        });
+
+        li.append(checkbox, text, editButton, deleteButton);
         listContainer.appendChild(li);
     });
 
-    updateTotal();
-}
-
-function updateTotal() {
-    const total = shoppingList.reduce(function(sum, item) {
-        return item.purchased
-            ? sum + item.price
-            : sum;
-    }, 0);
+    // Calculate purchased items total
+    const total = shoppingList.reduce(
+        (sum, item) => sum + (item.purchased ? item.price : 0), 0
+    );
 
     totalCost.textContent = total.toFixed(2);
 }
 
-addButton.addEventListener("click", function() {
+// Add item
+addButton.addEventListener("click", () => {
     const name = itemInput.value.trim();
     const price = Number(priceInput.value);
 
-    if (name === "") {
-        alert("Please enter an item name!");
-        itemInput.focus();
+    if (!name || priceInput.value.trim() === "" ||
+        !Number.isFinite(price) || price < 0) {
+        alert("Enter a valid item name and price!");
         return;
     }
 
-    if (
-        priceInput.value.trim() === "" ||
-        !Number.isFinite(price) ||
-        price < 0
-    ) {
-        alert("Please enter a valid, non-negative price!");
-        priceInput.focus();
-        return;
-    }
-
-    shoppingList.push({
-        name: name,
-        price: price,
-        purchased: false
-    });
+    shoppingList.push({ name, price, purchased: false });
 
     itemInput.value = "";
     priceInput.value = "";
 
-    saveShoppingList();
-    displayShoppingList();
+    saveList();
+    displayList();
 });
 
 
-const markPurchasedButton =
-    document.getElementById("markPurchasedButton");
-
-if (markPurchasedButton) {
-    markPurchasedButton.addEventListener("click", function() {
-        shoppingList.forEach(function(item) {
-            item.purchased = true;
-        });
-
-        saveShoppingList();
-        displayShoppingList();
+    if (markPurchasedButton) {
+    markPurchasedButton.addEventListener("click", () => {
+        shoppingList.forEach(item => item.purchased = true);
+        saveList();
+        displayList();
     });
 }
 
-
-const clearButton = document.getElementById("clearButton");
-
+// Clear list
 if (clearButton) {
-    clearButton.addEventListener("click", function() {
-        if (shoppingList.length === 0) {
-            return;
-        }
-
-        const confirmed = confirm(
-            "Are you sure you want to clear the shopping list?"
-        );
-
-        if (confirmed) {
+    clearButton.addEventListener("click", () => {
+        if (confirm("Clear the entire shopping list?")) {
             shoppingList = [];
-
-            saveShoppingList();
-            displayShoppingList();
+            saveList();
+            displayList();
         }
     });
 }
+
+// Start the application
+displayList();
